@@ -13,6 +13,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -29,36 +30,10 @@ namespace Conflicts
     public MainForm()
     {
       InitializeComponent();
-    }
 
-    /// <summary>
-    /// Get the filename from a path
-    /// </summary>
-    /// <param name="path">The path to get the filename from</param>
-    /// <returns>The filename</returns>
-    private string getFilename(string path)
-    {
-      char[] delim = { '\\', '/' };
-      string[] spl = path.Split(delim);
-      return spl[spl.Length - 1];
-    }
-
-    /// <summary>
-    /// Get the path without the last filename
-    /// </summary>
-    /// <param name="path">The path to parse</param>
-    /// <returns>The path excluding the final filename</returns>
-    private string getFolder(string path)
-    {
-      char[] delim = { '\\', '/' };
-      string[] spl = path.Split(delim);
-      StringBuilder sb = new StringBuilder();
-      int numFolders = spl.Length - 1;
-
-      for (int i = 0; i < numFolders; i++)
-        sb.Append(spl[i]).Append("/");
-
-      return sb.ToString();
+      tableLayoutPanel1.Controls.Add(makeLabel("File Name"), 0, 0);
+      tableLayoutPanel1.Controls.Add(makeLabel("Folder 1"), 1, 0);
+      tableLayoutPanel1.Controls.Add(makeLabel("Folder 2"), 2, 0);
     }
 
     /// <summary>
@@ -79,11 +54,10 @@ namespace Conflicts
     /// <param name="text">The text to set the TextBox's Text property 
     /// to</param>
     /// <returns>The new TextBox</returns>
-    private TextBox makeTextBox(string text)
+    private TextBox TextBoxFactory(string text)
     {
       TextBox tb = new TextBox();
       tb.Dock = DockStyle.Fill;
-      //tb.Multiline = true;
       tb.Text = text;
 
       return tb;
@@ -91,16 +65,23 @@ namespace Conflicts
 
     private int numConflicts = 0;
 
-    private void update(string filename, string path1, string path2)
+    private void makeRow(TextBox[] textBoxes)
     {
       numConflicts += 1;
-      TextBox a = makeTextBox(filename);
-      TextBox b = makeTextBox(path1);
-      TextBox c = makeTextBox(path2);
+      for (int i = 0; i < 3; i++)
+        tableLayoutPanel1.Controls.Add(textBoxes[i], i, numConflicts);
+    }
+    public delegate void InvokeDelegate(TextBox[] textBoxes);
 
-      tableLayoutPanel1.Controls.Add(a, 0, numConflicts);
-      tableLayoutPanel1.Controls.Add(b, 1, numConflicts);
-      tableLayoutPanel1.Controls.Add(c, 2, numConflicts);
+    private void update(string[] data)
+    {
+      TextBox[] textBoxes = new TextBox[3];
+      for (int i = 0; i < 3; i++)
+        textBoxes[i] = TextBoxFactory(data[i]);
+
+      Object[] pars = new Object[1];
+      pars[0] = textBoxes;
+      tableLayoutPanel1.Invoke(new InvokeDelegate(makeRow), pars);
     }
 
     /// <summary>
@@ -111,61 +92,37 @@ namespace Conflicts
     private void button1_Click(object sender, EventArgs e)
     {
       tableLayoutPanel1.Controls.Clear();
+      numConflicts = 0;
       label3.Text = "";
 
+      List<String[]> res;
       string path1 = textBox1.Text;
       string path2 = textBox2.Text;
-      string[] files1;
-      string[] files2;
 
-      // Get the files in the directory and their subdirectories
       try
       {
-        if (path1 == "" || path2 == "")
-          throw new DirectoryNotFoundException();
-
-        files1 = Directory.GetFiles(path1, "*", SearchOption.AllDirectories);
-        files2 = Directory.GetFiles(path2, "*", SearchOption.AllDirectories);
+        res = ConflictFinder.run(path1, path2);
       }
-
       catch (DirectoryNotFoundException ex)
       {
         label3.Text = ex.Message;
+        label5.Text = "";
         return;
       }
 
-      int len1 = files1.Length;
-      int len2 = files2.Length;
-
-      // Get the actual file names from the paths
-      string[] files2_filenames = new string[files2.Length];
-      for (int i = 0; i < len2; i++)
-        files2_filenames[i] = getFilename(files2[i]);
-
-      StringBuilder sb = new StringBuilder();
-      int numConflicts = 0;
-
-      tableLayoutPanel1.Controls.Add(makeLabel("File Name"), 0, 0);
-      tableLayoutPanel1.Controls.Add(makeLabel("Folder 1"),  1, 0);
-      tableLayoutPanel1.Controls.Add(makeLabel("Folder 2"),  2, 0);
-
-      // Loop through all files in both sets looking for conflicting names
-      for (int i = 0; i < len1; i++)
+      int count = res.Count;
+      Thread[] threads = new Thread[count];
+      for (int i = 0; i < count; i++)
       {
-        string filename = getFilename(files1[i]);
-                                                                                
-        for (int j = 0; j < len2; j++)
+        threads[i] = new Thread((object data) =>
         {
-          int cmp = String.Compare(filename, files2_filenames[j], 
-                                   StringComparison.OrdinalIgnoreCase);
-          if (cmp == 0)
-          {
-            numConflicts += 1;
+          update(res.ElementAt((int)data));
+        });
 
-            update(filename, files1[i], files2[j]);
-          }
-        }
+        threads[i].Start((object)i);
       }
+
+      label5.Text = "Number of conflicts: " + numConflicts;
     } /* button click */
 
     private void getFiles(string path)
