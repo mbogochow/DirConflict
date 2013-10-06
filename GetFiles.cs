@@ -29,6 +29,8 @@ namespace Conflicts
     /// </summary>
     private ManualResetEvent doneEvent;
 
+    private ManualResetEvent[] doneEvents;
+
     /// <summary>
     /// 
     /// </summary>
@@ -69,10 +71,30 @@ namespace Conflicts
       }
 
       List<string> dirs = new List<string>(Directory.EnumerateDirectories(path));
-      foreach (string dir in dirs)
+      int dirCount = dirs.Count;
+      if (dirCount > 1)
       {
-        getAllFiles(dir);
+        doneEvents = new ManualResetEvent[dirCount];
+        FilesRetriever[] fr = new FilesRetriever[dirCount];
+        int i = 0;
+        foreach (string dir in dirs)
+        {
+          doneEvents[i] = new ManualResetEvent(false);
+          fr[i] = new FilesRetriever(doneEvents[i]);
+          ThreadPool.QueueUserWorkItem(fr[i].ThreadPoolCallback, (object)dir);
+          //getAllFiles(dir);
+          i += 1;
+        }
+
+        WaitHandle.WaitAll(doneEvents);
+        for (i = 0; i < fr.Length; i++)
+        {
+          files.AddRange(fr[i].Files);
+        }
       }
+
+      else if (dirCount != 0)
+        getAllFiles(dirs.ElementAt(0));
     }
 
     /// <summary>
