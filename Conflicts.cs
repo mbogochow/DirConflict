@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Windows.Forms;
 
 namespace Conflicts
 {
@@ -43,6 +44,21 @@ namespace Conflicts
     } /* getFolder */
 
     /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="files"></param>
+    /// <param name="path"></param>
+    private static void getFiles(out string[] files, ConflictPath path)
+    {
+      if (path.PathOptions.subdirectories)
+        files = Directory.GetFiles(path.Path, "*", SearchOption.AllDirectories);
+
+      else
+        files = Directory.GetFiles(path.Path, "*",
+          SearchOption.TopDirectoryOnly);
+    }
+
+    /// <summary>
     /// Run the search algorithm.
     /// </summary>
     /// <param name="path1">The first path to search.</param>
@@ -59,6 +75,8 @@ namespace Conflicts
       string[] files1 = null;
       string[] files2 = null;
 
+      string err = "";
+
       // Get the files in the directory and their subdirectories if specified
       if (path1.Path == "" || path2.Path == "")
         throw new DirectoryNotFoundException();
@@ -67,27 +85,35 @@ namespace Conflicts
       {
         try
         {
-          if (path1.PathOptions.subdirectories)
-            files1 = Directory.GetFiles(path1.Path, "*",
-                                        SearchOption.AllDirectories);
-          else
-            files1 = Directory.GetFiles(path1.Path, "*",
-                                        SearchOption.TopDirectoryOnly);
+          getFiles(out files1, path1);
         }
+
         catch (UnauthorizedAccessException ex)
         {
-          throw;
+          err = ex.Message;
         }
       });
 
       t.Start();
+      if (err.CompareTo("") != 0) throw new UnauthorizedAccessException(err);
 
-      if (path2.PathOptions.subdirectories)
-        files2 = Directory.GetFiles(path2.Path, "*", 
-                                    SearchOption.AllDirectories);
-      else
-        files2 = Directory.GetFiles(path2.Path, "*", 
-                                    SearchOption.TopDirectoryOnly);
+      //List<string> files22 = new List<string>(Directory.EnumerateDirectories(path2.Path));
+      //StringBuilder sb1 = new StringBuilder();
+      //foreach (string s in files22)
+      //{
+      //  sb1.Append(s).Append(Environment.NewLine);
+      //}
+      //MessageBox.Show(sb1.ToString(), "here2", MessageBoxButtons.OK);
+
+      //List<string> EnumerateFiles = new List<string>(Directory.EnumerateFiles(path2.Path));
+      //sb1.Clear();
+      //foreach (string s in EnumerateFiles)
+      //{
+      //  sb1.AppendLine(s);
+      //}
+      //MessageBox.Show(sb1.ToString(), "here3", MessageBoxButtons.OK);
+
+      getFiles(out files2, path2);
 
       t.Join();
       
