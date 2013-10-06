@@ -141,7 +141,7 @@ namespace Conflicts
       
       int len1 = files1.Count;
       int len2 = files2.Count;
-      //MessageBox.Show(len1.ToString());
+      
       // Get the actual file names from the paths
       string[] files2_filenames = new string[len2];
       for (int i = 0; i < len2; i++)
@@ -175,7 +175,6 @@ namespace Conflicts
             {
               cmp = String.Compare(filename, files2_filenames[j],
                                         StringComparison.OrdinalIgnoreCase);
-              //Debug.WriteLine(filename + " " + files2_filenames[j] + " " + cmp);
             }
             if (cmp == 0)
             {
@@ -208,29 +207,51 @@ namespace Conflicts
       return ret;
     } /* run */
 
+    /// <summary>
+    /// 
+    /// </summary>
     public class ConflictPath
     {
+      /// <summary>
+      /// 
+      /// </summary>
       private string path;
-      public
-        string Path
+      /// <summary>
+      /// 
+      /// </summary>
+      public string Path
       {
         get { return path; }
         set { this.path = value; }
       }
 
+      /// <summary>
+      /// 
+      /// </summary>
       private Options options;
+      /// <summary>
+      /// 
+      /// </summary>
       public Options PathOptions
       {
         get { return this.options; }
         set { this.options = value; }
       }
 
+      /// <summary>
+      /// 
+      /// </summary>
+      /// <param name="path"></param>
+      /// <param name="options"></param>
       public ConflictPath(string path, Options options)
       {
         this.path = path;
         this.options = options;
       }
 
+      /// <summary>
+      /// 
+      /// </summary>
       public struct Options
       {
         public bool subdirectories;

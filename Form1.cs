@@ -31,7 +31,7 @@ namespace Conflicts
     public MainForm()
     {
       InitializeComponent();
-
+      
       string html = DirConflict.Properties.Resources.HTMLPage1;
       webBrowser1.DocumentText = html;
     }
