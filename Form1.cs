@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -76,6 +77,9 @@ namespace Conflicts
     /// <param name="e">The event arguments</param>
     private void button1_Click(object sender, EventArgs e)
     {
+      Stopwatch stopwatch = new Stopwatch();
+      stopwatch.Start();
+
       // Prepare form for new results
       label3.Text = "";
 
@@ -156,6 +160,11 @@ namespace Conflicts
         webBrowser1.Document.Body.InnerHtml = "";
 
       label5.Text = "Number of conflicts: " + numConflicts;
+
+      stopwatch.Stop();
+      long time = stopwatch.ElapsedMilliseconds;
+      double dTime = (double)time / 1000;
+      label3.Text = dTime.ToString() + " seconds";
     } /* button click */
   } /* form1 */
 } /* Conflicts */

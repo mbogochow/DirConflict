@@ -70,26 +70,39 @@ namespace Conflicts
         return;
       }
 
+      catch (DirectoryNotFoundException ex)
+      {
+        return;
+      }
+
       List<string> dirs = new List<string>(Directory.EnumerateDirectories(path));
       int dirCount = dirs.Count;
       if (dirCount > 1)
       {
-        doneEvents = new ManualResetEvent[dirCount];
-        FilesRetriever[] fr = new FilesRetriever[dirCount];
-        int i = 0;
-        foreach (string dir in dirs)
-        {
-          doneEvents[i] = new ManualResetEvent(false);
-          fr[i] = new FilesRetriever(doneEvents[i]);
-          ThreadPool.QueueUserWorkItem(fr[i].ThreadPoolCallback, (object)dir);
-          //getAllFiles(dir);
-          i += 1;
-        }
+        int waitCount = Math.Min(dirCount, 64);
 
-        WaitHandle.WaitAll(doneEvents);
-        for (i = 0; i < fr.Length; i++)
+        while (waitCount <= dirCount)
         {
-          files.AddRange(fr[i].Files);
+          doneEvents = new ManualResetEvent[waitCount];
+          FilesRetriever[] fr = new FilesRetriever[waitCount];
+          
+          for (int i = 0; i < waitCount; i++)
+          {
+            string dir = dirs.ElementAt(i);
+            doneEvents[i] = new ManualResetEvent(false);
+            fr[i] = new FilesRetriever(doneEvents[i]);
+            ThreadPool.QueueUserWorkItem(fr[i].ThreadPoolCallback, (object)dir);
+          }
+
+          WaitHandle.WaitAll(doneEvents);
+          for (int i = 0; i < fr.Length; i++)
+          {
+            files.AddRange(fr[i].Files);
+          }
+
+          dirCount -= waitCount;
+          waitCount = Math.Min(dirCount, 64);
+          if (waitCount <= 0) break;
         }
       }
 
