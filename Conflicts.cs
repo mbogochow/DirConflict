@@ -45,50 +45,6 @@ namespace Conflicts
     } /* getFolder */
 
     /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="files"></param>
-    /// <param name="path"></param>
-    private static void getAllFiles(ref List<string> files, string path)
-    {
-      try
-      {
-        files.AddRange(Directory.EnumerateFiles(path));
-        //Debug.WriteLine("Count: " + files.Count);
-      }
-
-      catch (UnauthorizedAccessException ex)
-      {
-        //MessageBox.Show(ex.Message);
-        return;
-      }
-
-      List<string> dirs = new List<string>(Directory.EnumerateDirectories(path));
-      foreach (string dir in dirs)
-      {
-        getAllFiles(ref files, dir);
-      }
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="files"></param>
-    /// <param name="path"></param>
-    private static void getFiles(ref List<string> files, string path)
-    {
-      try
-      {
-        files.AddRange(Directory.EnumerateFiles(path));
-      }
-
-      catch (UnauthorizedAccessException ex)
-      {
-        return;
-      }
-    }
-
-    /// <summary>
     /// Run the search algorithm.
     /// </summary>
     /// <param name="path1">The first path to search.</param>
@@ -111,33 +67,39 @@ namespace Conflicts
       if (path1.Path == "" || path2.Path == "")
         throw new DirectoryNotFoundException();
 
-      Thread t = new Thread(() =>
+      ManualResetEvent[] doneEvents = new ManualResetEvent[2];
+      FilesRetriever[] mGetFiles = new FilesRetriever[2];
+      for (int i = 0; i < doneEvents.Length; i++)
       {
-        try
-        {
-          if (path1.PathOptions.subdirectories)
-            getAllFiles(ref files1, path1.Path);
+        doneEvents[i] = new ManualResetEvent(false);
+        mGetFiles[i] = new FilesRetriever(doneEvents[i]);
+      }
 
-          else
-            getFiles(ref files1, path1.Path);
-        }
+      try
+      {
+        if (path1.PathOptions.subdirectories)
+          ThreadPool.QueueUserWorkItem(mGetFiles[0].ThreadPoolCallback, (object)path1.Path);
 
-        catch (UnauthorizedAccessException ex)
-        {
-          err = ex.Message;
-        }
-      });
+        else
+          mGetFiles[0].getFiles(path1.Path);
+      }
 
-      t.Start();
+      catch (UnauthorizedAccessException ex)
+      {
+        err = ex.Message;
+      }
+
       if (err.CompareTo("") != 0) throw new UnauthorizedAccessException(err);
-
+      
       if (path2.PathOptions.subdirectories)
-        getAllFiles(ref files2, path2.Path);
+        ThreadPool.QueueUserWorkItem(mGetFiles[1].ThreadPoolCallback, (object)path2.Path);
 
       else
-        getFiles(ref files2, path2.Path);
+        mGetFiles[1].getFiles(path2.Path);
 
-      t.Join();
+      WaitHandle.WaitAll(doneEvents);
+      files1 = mGetFiles[0].Files;
+      files2 = mGetFiles[1].Files;
       
       int len1 = files1.Count;
       int len2 = files2.Count;

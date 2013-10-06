@@ -63,6 +63,12 @@ namespace Conflicts
       return tb;
     }
 
+    private delegate void setLabelText(Label label, string msg);
+    private void labelTextSetter(Label label, string msg)
+    {
+      label.Text = msg;
+    }
+
     /// <summary>
     /// Perform the algorithm on button click
     /// </summary>
@@ -73,40 +79,50 @@ namespace Conflicts
       // Prepare form for new results
       label3.Text = "";
 
-      List<String[]> res;
+      List<String[]> res = null;
       int numConflicts = 0;
       string path1 = textBox1.Text;
       string path2 = textBox2.Text;
 
       // Run searching algorithm
-      try
+      // Run on new thread since can't call WaitHandle.WaitAll on UI thread
+      Thread t = new Thread(() =>
       {
         ConflictFinder.ConflictPath.Options options1 =
-          new ConflictFinder.ConflictPath.Options();
+        new ConflictFinder.ConflictPath.Options();
         ConflictFinder.ConflictPath.Options options2 =
           new ConflictFinder.ConflictPath.Options();
 
         if (checkBox1.Checked) options1.subdirectories = true;
         if (checkBox2.Checked) options2.subdirectories = true;
 
-        res = ConflictFinder.run(
-          new ConflictFinder.ConflictPath(path1, options1),
-          new ConflictFinder.ConflictPath(path2, options2)
-          );
-      }
-      catch (Exception ex)
-      {
-        if (ex is DirectoryNotFoundException ||
-            ex is UnauthorizedAccessException)
-        { 
-          label3.Text = ex.Message;
-          label5.Text = "";
-          return;
+        try
+        {
+          res = ConflictFinder.run(
+            new ConflictFinder.ConflictPath(path1, options1),
+            new ConflictFinder.ConflictPath(path2, options2)
+            );
         }
 
-        throw;
-      }
+        catch (Exception ex)
+        {
+          if (ex is DirectoryNotFoundException ||
+              ex is UnauthorizedAccessException)
+          { 
+            object[] obj = {label3, ex.Message};
+            label3.BeginInvoke(new setLabelText(labelTextSetter), obj);
+            object[] obj2 = {label5, ""};
+            label5.BeginInvoke(new setLabelText(labelTextSetter), obj2);
+            return;
+          }
 
+          throw;
+        }
+      });
+
+      t.Start();
+      t.Join();
+      
       if (res.Count > 0)
       {
         // Construct table from results
