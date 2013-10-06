@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -48,14 +49,43 @@ namespace Conflicts
     /// </summary>
     /// <param name="files"></param>
     /// <param name="path"></param>
-    private static void getFiles(out string[] files, ConflictPath path)
+    private static void getAllFiles(ref List<string> files, string path)
     {
-      if (path.PathOptions.subdirectories)
-        files = Directory.GetFiles(path.Path, "*", SearchOption.AllDirectories);
+      try
+      {
+        files.AddRange(Directory.EnumerateFiles(path));
+        //Debug.WriteLine("Count: " + files.Count);
+      }
 
-      else
-        files = Directory.GetFiles(path.Path, "*",
-          SearchOption.TopDirectoryOnly);
+      catch (UnauthorizedAccessException ex)
+      {
+        //MessageBox.Show(ex.Message);
+        return;
+      }
+
+      List<string> dirs = new List<string>(Directory.EnumerateDirectories(path));
+      foreach (string dir in dirs)
+      {
+        getAllFiles(ref files, dir);
+      }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="files"></param>
+    /// <param name="path"></param>
+    private static void getFiles(ref List<string> files, string path)
+    {
+      try
+      {
+        files.AddRange(Directory.EnumerateFiles(path));
+      }
+
+      catch (UnauthorizedAccessException ex)
+      {
+        return;
+      }
     }
 
     /// <summary>
@@ -72,8 +102,8 @@ namespace Conflicts
       List<String[]> ret = new List<string[]>();
       object retLock = new object();
 
-      string[] files1 = null;
-      string[] files2 = null;
+      List<string> files1 = new List<string>();
+      List<string> files2 = new List<string>();
 
       string err = "";
 
@@ -85,7 +115,11 @@ namespace Conflicts
       {
         try
         {
-          getFiles(out files1, path1);
+          if (path1.PathOptions.subdirectories)
+            getAllFiles(ref files1, path1.Path);
+
+          else
+            getFiles(ref files1, path1.Path);
         }
 
         catch (UnauthorizedAccessException ex)
@@ -97,38 +131,27 @@ namespace Conflicts
       t.Start();
       if (err.CompareTo("") != 0) throw new UnauthorizedAccessException(err);
 
-      //List<string> files22 = new List<string>(Directory.EnumerateDirectories(path2.Path));
-      //StringBuilder sb1 = new StringBuilder();
-      //foreach (string s in files22)
-      //{
-      //  sb1.Append(s).Append(Environment.NewLine);
-      //}
-      //MessageBox.Show(sb1.ToString(), "here2", MessageBoxButtons.OK);
+      if (path2.PathOptions.subdirectories)
+        getAllFiles(ref files2, path2.Path);
 
-      //List<string> EnumerateFiles = new List<string>(Directory.EnumerateFiles(path2.Path));
-      //sb1.Clear();
-      //foreach (string s in EnumerateFiles)
-      //{
-      //  sb1.AppendLine(s);
-      //}
-      //MessageBox.Show(sb1.ToString(), "here3", MessageBoxButtons.OK);
-
-      getFiles(out files2, path2);
+      else
+        getFiles(ref files2, path2.Path);
 
       t.Join();
       
-      int len1 = files1.Length;
-      int len2 = files2.Length;
-
+      int len1 = files1.Count;
+      int len2 = files2.Count;
+      //MessageBox.Show(len1.ToString());
       // Get the actual file names from the paths
-      string[] files2_filenames = new string[files2.Length];
+      string[] files2_filenames = new string[len2];
       for (int i = 0; i < len2; i++)
-        files2_filenames[i] = getFilename(files2[i]);
+        files2_filenames[i] = getFilename(files2.ElementAt(i));
 
       StringBuilder sb = new StringBuilder();
       int numConflicts = 0;
 
       Thread[] threads = new Thread[len1];
+      Object filesLock = new Object();
 
       // Loop through all files in both sets looking for conflicting names
       for (int i = 0; i < len1; i++)
@@ -136,21 +159,35 @@ namespace Conflicts
         threads[i] = new Thread((object data) => 
         {
           int index = (int)data;
-          string filename = getFilename(files1[index]);
+          string filename;
+
+          lock (filesLock)
+          { 
+            filename = getFilename(files1.ElementAt(index));
+          }
 
           // Loop through files in path2 for each file in path1
           for (int j = 0; j < len2; j++)
           {
-            int cmp = String.Compare(filename, files2_filenames[j],
-                                      StringComparison.OrdinalIgnoreCase);
+            int cmp;
+
+            lock (filesLock)
+            {
+              cmp = String.Compare(filename, files2_filenames[j],
+                                        StringComparison.OrdinalIgnoreCase);
+              //Debug.WriteLine(filename + " " + files2_filenames[j] + " " + cmp);
+            }
             if (cmp == 0)
             {
               numConflicts += 1;
+              string[] entry = new string[3];
 
-              string[] entry = { filename,
-                                 getFolder(files1[index]), 
-                                 getFolder(files2[j]) 
-                               };
+              lock (filesLock)
+              {
+                entry[0] = filename;
+                entry[1] = getFolder(files1[index]);
+                entry[2] = getFolder(files2[j]);
+              }
 
               lock (retLock)
               {
@@ -174,7 +211,8 @@ namespace Conflicts
     public class ConflictPath
     {
       private string path;
-      public string Path
+      public
+        string Path
       {
         get { return path; }
         set { this.path = value; }
