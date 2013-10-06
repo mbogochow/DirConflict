@@ -38,6 +38,8 @@
       this.label4 = new System.Windows.Forms.Label();
       this.label5 = new System.Windows.Forms.Label();
       this.webBrowser1 = new System.Windows.Forms.WebBrowser();
+      this.checkBox1 = new System.Windows.Forms.CheckBox();
+      this.checkBox2 = new System.Windows.Forms.CheckBox();
       this.SuspendLayout();
       // 
       // button1
@@ -57,7 +59,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
       this.textBox1.Location = new System.Drawing.Point(12, 28);
       this.textBox1.Name = "textBox1";
-      this.textBox1.Size = new System.Drawing.Size(848, 20);
+      this.textBox1.Size = new System.Drawing.Size(749, 20);
       this.textBox1.TabIndex = 1;
       // 
       // textBox2
@@ -67,7 +69,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
       this.textBox2.Location = new System.Drawing.Point(12, 74);
       this.textBox2.Name = "textBox2";
-      this.textBox2.Size = new System.Drawing.Size(848, 20);
+      this.textBox2.Size = new System.Drawing.Size(749, 20);
       this.textBox2.TabIndex = 2;
       // 
       // label1
@@ -99,20 +101,20 @@
       // label4
       // 
       this.label4.AutoSize = true;
-      this.label4.Font = new System.Drawing.Font("Georgia", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.label4.Location = new System.Drawing.Point(12, 137);
+      this.label4.Font = new System.Drawing.Font("Cambria", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.label4.Location = new System.Drawing.Point(11, 132);
       this.label4.Name = "label4";
-      this.label4.Size = new System.Drawing.Size(59, 14);
+      this.label4.Size = new System.Drawing.Size(67, 19);
       this.label4.TabIndex = 9;
       this.label4.Text = "Results:";
       // 
       // label5
       // 
       this.label5.AutoSize = true;
-      this.label5.Font = new System.Drawing.Font("Georgia", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-      this.label5.Location = new System.Drawing.Point(71, 137);
+      this.label5.Font = new System.Drawing.Font("Cambria", 12F);
+      this.label5.Location = new System.Drawing.Point(78, 132);
       this.label5.Name = "label5";
-      this.label5.Size = new System.Drawing.Size(0, 14);
+      this.label5.Size = new System.Drawing.Size(0, 19);
       this.label5.TabIndex = 10;
       // 
       // webBrowser1
@@ -126,11 +128,37 @@
       this.webBrowser1.Size = new System.Drawing.Size(845, 250);
       this.webBrowser1.TabIndex = 11;
       // 
+      // checkBox1
+      // 
+      this.checkBox1.AutoSize = true;
+      this.checkBox1.Checked = true;
+      this.checkBox1.CheckState = System.Windows.Forms.CheckState.Checked;
+      this.checkBox1.Location = new System.Drawing.Point(767, 31);
+      this.checkBox1.Name = "checkBox1";
+      this.checkBox1.Size = new System.Drawing.Size(93, 17);
+      this.checkBox1.TabIndex = 12;
+      this.checkBox1.Text = "Subdirectories";
+      this.checkBox1.UseVisualStyleBackColor = true;
+      // 
+      // checkBox2
+      // 
+      this.checkBox2.AutoSize = true;
+      this.checkBox2.Checked = true;
+      this.checkBox2.CheckState = System.Windows.Forms.CheckState.Checked;
+      this.checkBox2.Location = new System.Drawing.Point(767, 77);
+      this.checkBox2.Name = "checkBox2";
+      this.checkBox2.Size = new System.Drawing.Size(93, 17);
+      this.checkBox2.TabIndex = 13;
+      this.checkBox2.Text = "Subdirectories";
+      this.checkBox2.UseVisualStyleBackColor = true;
+      // 
       // MainForm
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(872, 423);
+      this.Controls.Add(this.checkBox2);
+      this.Controls.Add(this.checkBox1);
       this.Controls.Add(this.webBrowser1);
       this.Controls.Add(this.label5);
       this.Controls.Add(this.label4);
@@ -159,6 +187,8 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.WebBrowser webBrowser1;
+        private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.CheckBox checkBox2;
     }
 }
 

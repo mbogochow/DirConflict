@@ -63,8 +63,6 @@ namespace Conflicts
       return tb;
     }
 
-    
-
     /// <summary>
     /// Perform the algorithm on button click
     /// </summary>
@@ -83,13 +81,30 @@ namespace Conflicts
       // Run searching algorithm
       try
       {
-        res = ConflictFinder.run(path1, path2);
+        ConflictFinder.ConflictPath.Options options1 =
+          new ConflictFinder.ConflictPath.Options();
+        ConflictFinder.ConflictPath.Options options2 =
+          new ConflictFinder.ConflictPath.Options();
+
+        if (checkBox1.Checked) options1.subdirectories = true;
+        if (checkBox2.Checked) options2.subdirectories = true;
+
+        res = ConflictFinder.run(
+          new ConflictFinder.ConflictPath(path1, options1),
+          new ConflictFinder.ConflictPath(path2, options2)
+          );
       }
-      catch (DirectoryNotFoundException ex)
+      catch (Exception ex)
       {
-        label3.Text = ex.Message;
-        label5.Text = "";
-        return;
+        if (ex is DirectoryNotFoundException ||
+            ex is UnauthorizedAccessException)
+        { 
+          label3.Text = ex.Message;
+          label5.Text = "";
+          return;
+        }
+
+        throw;
       }
 
       if (res.Count > 0)

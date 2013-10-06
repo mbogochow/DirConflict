@@ -7,6 +7,9 @@ using System.Threading;
 
 namespace Conflicts
 {
+  /// <summary>
+  /// Class for running directory conflict search algorithm.
+  /// </summary>
   static class ConflictFinder
   {
     /// <summary>
@@ -19,7 +22,7 @@ namespace Conflicts
       char[] delim = { '\\', '/' };
       string[] spl = path.Split(delim);
       return spl[spl.Length - 1];
-    }
+    } /* getFileName */
 
     /// <summary>
     /// Get the path without the last filename
@@ -37,15 +40,18 @@ namespace Conflicts
         sb.Append(spl[i]).Append("/");
 
       return sb.ToString();
-    }
+    } /* getFolder */
 
     /// <summary>
-    /// 
+    /// Run the search algorithm.
     /// </summary>
-    /// <param name="path1"></param>
-    /// <param name="path2"></param>
-    /// <returns></returns>
-    public static List<String[]> run(string path1, string path2)
+    /// <param name="path1">The first path to search.</param>
+    /// <param name="path2">The second path to search.</param>
+    /// <returns>A list of conflicts. Conflicts are in the form of a string 
+    /// array  with three elements: the first is the file name and the second 
+    /// and  third are the paths in which the file was found in path1 and path2 
+    /// respectively.</returns>
+    public static List<String[]> run(ConflictPath path1, ConflictPath path2)
     {
       List<String[]> ret = new List<string[]>();
       object retLock = new object();
@@ -53,18 +59,36 @@ namespace Conflicts
       string[] files1 = null;
       string[] files2 = null;
 
-      // Get the files in the directory and their subdirectories
-      if (path1 == "" || path2 == "")
+      // Get the files in the directory and their subdirectories if specified
+      if (path1.Path == "" || path2.Path == "")
         throw new DirectoryNotFoundException();
 
       Thread t = new Thread(() =>
       {
-        files1 = Directory.GetFiles(path1, "*", SearchOption.AllDirectories);
+        try
+        {
+          if (path1.PathOptions.subdirectories)
+            files1 = Directory.GetFiles(path1.Path, "*",
+                                        SearchOption.AllDirectories);
+          else
+            files1 = Directory.GetFiles(path1.Path, "*",
+                                        SearchOption.TopDirectoryOnly);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+          throw;
+        }
       });
 
       t.Start();
-        
-      files2 = Directory.GetFiles(path2, "*", SearchOption.AllDirectories);
+
+      if (path2.PathOptions.subdirectories)
+        files2 = Directory.GetFiles(path2.Path, "*", 
+                                    SearchOption.AllDirectories);
+      else
+        files2 = Directory.GetFiles(path2.Path, "*", 
+                                    SearchOption.TopDirectoryOnly);
+
       t.Join();
       
       int len1 = files1.Length;
@@ -88,6 +112,7 @@ namespace Conflicts
           int index = (int)data;
           string filename = getFilename(files1[index]);
 
+          // Loop through files in path2 for each file in path1
           for (int j = 0; j < len2; j++)
           {
             int cmp = String.Compare(filename, files2_filenames[j],
@@ -96,7 +121,10 @@ namespace Conflicts
             {
               numConflicts += 1;
 
-              string[] entry = { filename, files1[index], files2[j] };
+              string[] entry = { filename,
+                                 getFolder(files1[index]), 
+                                 getFolder(files2[j]) 
+                               };
 
               lock (retLock)
               {
@@ -116,5 +144,33 @@ namespace Conflicts
 
       return ret;
     } /* run */
+
+    public class ConflictPath
+    {
+      private string path;
+      public string Path
+      {
+        get { return path; }
+        set { this.path = value; }
+      }
+
+      private Options options;
+      public Options PathOptions
+      {
+        get { return this.options; }
+        set { this.options = value; }
+      }
+
+      public ConflictPath(string path, Options options)
+      {
+        this.path = path;
+        this.options = options;
+      }
+
+      public struct Options
+      {
+        public bool subdirectories;
+      }
+    }
   } /* ConflictFinder */
 } /* Conflicts */
