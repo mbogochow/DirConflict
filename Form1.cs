@@ -12,6 +12,7 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,15 +26,14 @@ namespace Conflicts
   public partial class MainForm : Form
   {
     /// <summary>
-    /// 
+    /// Construct MainForm
     /// </summary>
     public MainForm()
     {
       InitializeComponent();
 
-      tableLayoutPanel1.Controls.Add(makeLabel("File Name"), 0, 0);
-      tableLayoutPanel1.Controls.Add(makeLabel("Folder 1"), 1, 0);
-      tableLayoutPanel1.Controls.Add(makeLabel("Folder 2"), 2, 0);
+      string html = DirConflict.Properties.Resources.HTMLPage1;
+      webBrowser1.DocumentText = html;
     }
 
     /// <summary>
@@ -63,26 +63,7 @@ namespace Conflicts
       return tb;
     }
 
-    private int numConflicts = 0;
-
-    private void makeRow(TextBox[] textBoxes)
-    {
-      numConflicts += 1;
-      for (int i = 0; i < 3; i++)
-        tableLayoutPanel1.Controls.Add(textBoxes[i], i, numConflicts);
-    }
-    public delegate void InvokeDelegate(TextBox[] textBoxes);
-
-    private void update(string[] data)
-    {
-      TextBox[] textBoxes = new TextBox[3];
-      for (int i = 0; i < 3; i++)
-        textBoxes[i] = TextBoxFactory(data[i]);
-
-      Object[] pars = new Object[1];
-      pars[0] = textBoxes;
-      tableLayoutPanel1.Invoke(new InvokeDelegate(makeRow), pars);
-    }
+    
 
     /// <summary>
     /// Perform the algorithm on button click
@@ -91,14 +72,15 @@ namespace Conflicts
     /// <param name="e">The event arguments</param>
     private void button1_Click(object sender, EventArgs e)
     {
-      tableLayoutPanel1.Controls.Clear();
-      numConflicts = 0;
+      // Prepare form for new results
       label3.Text = "";
 
       List<String[]> res;
+      int numConflicts = 0;
       string path1 = textBox1.Text;
       string path2 = textBox2.Text;
 
+      // Run searching algorithm
       try
       {
         res = ConflictFinder.run(path1, path2);
@@ -110,24 +92,39 @@ namespace Conflicts
         return;
       }
 
-      int count = res.Count;
-      Thread[] threads = new Thread[count];
-      for (int i = 0; i < count; i++)
+      if (res.Count > 0)
       {
-        threads[i] = new Thread((object data) =>
-        {
-          update(res.ElementAt((int)data));
-        });
+        // Construct table from results
+        const string header1 = "File Name";
+        const string header2 = "Folder 1";
+        const string header3 = "Folder 2";
 
-        threads[i].Start((object)i);
+        StringBuilder sb = new StringBuilder();
+        sb.Append("<table>")
+          .Append("<tr><th>").Append(header1)
+          .Append("</th><th>").Append(header2)
+          .Append("</th><th>").Append(header3)
+          .Append("</th></tr>");
+        foreach (String[] entry in res)
+        {
+          numConflicts += 1;
+
+          sb.Append("<tr>");
+
+          for (int i = 0; i < entry.Length; i++)
+            sb.Append("<td>" + entry[i] + "</td>");
+
+          sb.Append("</tr>");
+        }
+        sb.Append("</table>");
+
+        webBrowser1.Document.Body.InnerHtml = sb.ToString();
       }
+
+      else
+        webBrowser1.Document.Body.InnerHtml = "";
 
       label5.Text = "Number of conflicts: " + numConflicts;
     } /* button click */
-
-    private void getFiles(string path)
-    {
-      Directory.GetFiles(path, "*", SearchOption.AllDirectories);
-    }
   } /* form1 */
 } /* Conflicts */
