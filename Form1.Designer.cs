@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
       System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-      this.button1 = new System.Windows.Forms.Button();
+      this.runButton = new System.Windows.Forms.Button();
       this.textBox1 = new System.Windows.Forms.TextBox();
       this.textBox2 = new System.Windows.Forms.TextBox();
       this.label1 = new System.Windows.Forms.Label();
@@ -40,17 +40,18 @@
       this.webBrowser1 = new System.Windows.Forms.WebBrowser();
       this.checkBox1 = new System.Windows.Forms.CheckBox();
       this.checkBox2 = new System.Windows.Forms.CheckBox();
+      this.cancelButton = new System.Windows.Forms.Button();
       this.SuspendLayout();
       // 
-      // button1
+      // runButton
       // 
-      this.button1.Location = new System.Drawing.Point(12, 100);
-      this.button1.Name = "button1";
-      this.button1.Size = new System.Drawing.Size(75, 23);
-      this.button1.TabIndex = 0;
-      this.button1.Text = "Diff";
-      this.button1.UseVisualStyleBackColor = true;
-      this.button1.Click += new System.EventHandler(this.button1_Click);
+      this.runButton.Location = new System.Drawing.Point(12, 100);
+      this.runButton.Name = "runButton";
+      this.runButton.Size = new System.Drawing.Size(75, 23);
+      this.runButton.TabIndex = 0;
+      this.runButton.Text = "Diff";
+      this.runButton.UseVisualStyleBackColor = true;
+      this.runButton.Click += new System.EventHandler(this.runButton_Click);
       // 
       // textBox1
       // 
@@ -152,11 +153,22 @@
       this.checkBox2.Text = "Subdirectories";
       this.checkBox2.UseVisualStyleBackColor = true;
       // 
+      // cancelButton
+      // 
+      this.cancelButton.Location = new System.Drawing.Point(785, 100);
+      this.cancelButton.Name = "cancelButton";
+      this.cancelButton.Size = new System.Drawing.Size(75, 23);
+      this.cancelButton.TabIndex = 14;
+      this.cancelButton.Text = "Cancel";
+      this.cancelButton.UseVisualStyleBackColor = true;
+      this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);
+      // 
       // MainForm
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(872, 423);
+      this.Controls.Add(this.cancelButton);
       this.Controls.Add(this.checkBox2);
       this.Controls.Add(this.checkBox1);
       this.Controls.Add(this.webBrowser1);
@@ -167,7 +179,7 @@
       this.Controls.Add(this.label1);
       this.Controls.Add(this.textBox2);
       this.Controls.Add(this.textBox1);
-      this.Controls.Add(this.button1);
+      this.Controls.Add(this.runButton);
       this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
       this.Name = "MainForm";
       this.Text = "DirConflicts";
@@ -178,7 +190,7 @@
 
         #endregion
 
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button runButton;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.TextBox textBox2;
         private System.Windows.Forms.Label label1;
@@ -189,6 +201,7 @@
         private System.Windows.Forms.WebBrowser webBrowser1;
         private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.CheckBox checkBox2;
+        private System.Windows.Forms.Button cancelButton;
     }
 }
 

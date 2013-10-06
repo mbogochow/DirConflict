@@ -29,6 +29,17 @@ namespace Conflicts
     /// </summary>
     private ManualResetEvent doneEvent;
 
+    private bool canceled = false;
+    private object retrieverLock = new object();
+
+    public void CancelTask()
+    {
+      lock (retrieverLock)
+      {
+        canceled = true;
+      }
+    }
+
     /// <summary>
     /// 
     /// </summary>
@@ -56,6 +67,12 @@ namespace Conflicts
     /// <param name="path"></param>
     private void getAllFiles(string path)
     {
+      lock (retrieverLock)
+      { 
+        if (canceled) 
+          return;
+      }
+
       try
       {
         files.AddRange(Directory.EnumerateFiles(path));
@@ -76,6 +93,12 @@ namespace Conflicts
       List<string> dirs = new List<string>(Directory.EnumerateDirectories(path));
       foreach (string dir in dirs)
       {
+        lock (retrieverLock)
+        {
+          if (canceled)
+            return;
+        }
+
         getAllFiles(dir);
       }
     }
