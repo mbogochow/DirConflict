@@ -7,21 +7,41 @@ using System.Threading;
 
 namespace Conflicts
 {
+  /// <summary>
+  /// 
+  /// </summary>
   class FilesRetriever
   {
+    /// <summary>
+    /// 
+    /// </summary>
     private List<string> files = new List<string>();
+    /// <summary>
+    /// 
+    /// </summary>
     public List<string> Files
     {
       get { return files; }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     private ManualResetEvent doneEvent;
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="doneEvent"></param>
     public FilesRetriever(ManualResetEvent doneEvent)
     {
       this.doneEvent = doneEvent;
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="data"></param>
     public void ThreadPoolCallback(object data) 
     {
       string path = (string)data;
