@@ -73,19 +73,25 @@ namespace DirConflict
 
       // Get files from path1
       if (path1.PathOptions.subdirectories)
-        ThreadPool.QueueUserWorkItem(mGetFiles[0].ThreadPoolCallback, 
+        ThreadPool.QueueUserWorkItem(mGetFiles[0].ThreadPoolCallback,
           (object)path1.Path);
 
       else
+      {
         mGetFiles[0].getFiles(path1.Path);
+        doneEvents[0].Set();
+      }
       
       // Get files from path2
       if (path2.PathOptions.subdirectories)
-        ThreadPool.QueueUserWorkItem(mGetFiles[1].ThreadPoolCallback, 
+        ThreadPool.QueueUserWorkItem(mGetFiles[1].ThreadPoolCallback,
           (object)path2.Path);
 
       else
+      {
         mGetFiles[1].getFiles(path2.Path);
+        doneEvents[1].Set();
+      }
 
       // Wait until items have finished
       WaitHandle.WaitAll(doneEvents);
@@ -105,7 +111,7 @@ namespace DirConflict
     /// <returns>Conflicting file names within the paths including the full 
     /// paths at which the conflicting file is located within each path.
     /// </returns>
-    public static List<string[]> searchConflicts (List<string> files1, 
+    public static List<string[]> searchConflicts(List<string> files1, 
       List<string> files2)
     {
       // Get lengths
@@ -113,7 +119,7 @@ namespace DirConflict
       int len2 = files2.Count;
 
       List<String[]> ret = new List<string[]>(); // The list to be returned
-      object retLock = new object(); // Lock for adding to ret
+      object retLock = new object();             // Lock for adding to ret
 
       // Get the actual file names from the paths
       string[] files2_filenames = new string[len2];

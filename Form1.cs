@@ -131,7 +131,8 @@ namespace DirConflict
       stopwatch.Start();
 
       // Prepare form for new results
-      label3.Text = "";
+      label3.Text = "Running";
+      timer1.Start();
 
       List<String[]> res = null;
       int numConflicts = 0;
@@ -229,6 +230,8 @@ namespace DirConflict
 
         runButton.BeginInvoke(new controlToggle(toggleControlEnabled), 
           new object[] { runButton, true });
+
+        timer1.Stop();
       });
 
       processingThread.Start();
@@ -247,6 +250,22 @@ namespace DirConflict
         processingThread.Abort();
 
       runButton.Enabled = true;
+      timer1.Stop();
+      label3.Text = "Canceled";
     } /* cancelButton_Click */
+
+    private int tickCount = 0;
+    private void timer1_Tick(object sender, EventArgs e)
+    {
+      label3.Text += ".";
+
+      tickCount += 1;
+      if (tickCount >= 4)
+      {
+        tickCount = 0;
+        label3.Text = label3.Text.Trim('.');
+      }
+    } 
+
   } /* form1 */
 } /* Conflicts */

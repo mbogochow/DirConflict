@@ -77,7 +77,10 @@ namespace DirConflict
       }
 
       // Get directories
-      List<string> dirs = new List<string>(Directory.EnumerateDirectories(path));
+      List<string> dirs = new List<string>(
+        Directory.EnumerateDirectories(path));
+
+      // Recurse through each subdirectory
       foreach (string dir in dirs)
       {
         getAllFiles(dir);

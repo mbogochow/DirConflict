@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+      this.components = new System.ComponentModel.Container();
       System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
       this.runButton = new System.Windows.Forms.Button();
       this.textBox1 = new System.Windows.Forms.TextBox();
@@ -41,6 +42,7 @@
       this.checkBox1 = new System.Windows.Forms.CheckBox();
       this.checkBox2 = new System.Windows.Forms.CheckBox();
       this.cancelButton = new System.Windows.Forms.Button();
+      this.timer1 = new System.Windows.Forms.Timer(this.components);
       this.SuspendLayout();
       // 
       // runButton
@@ -163,6 +165,11 @@
       this.cancelButton.UseVisualStyleBackColor = true;
       this.cancelButton.Click += new System.EventHandler(this.cancelButton_Click);
       // 
+      // timer1
+      // 
+      this.timer1.Interval = 1000;
+      this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+      // 
       // MainForm
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -202,6 +209,7 @@
         private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.CheckBox checkBox2;
         private System.Windows.Forms.Button cancelButton;
+        private System.Windows.Forms.Timer timer1;
     }
 }
 
