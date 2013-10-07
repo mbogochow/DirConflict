@@ -5,19 +5,19 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace Conflicts
+namespace DirConflict
 {
   /// <summary>
-  /// 
+  /// Retrieve files from a path
   /// </summary>
   class FilesRetriever
   {
     /// <summary>
-    /// 
+    /// Files read from the path
     /// </summary>
     private List<string> files = new List<string>();
     /// <summary>
-    /// 
+    /// Files read from the path
     /// </summary>
     public List<string> Files
     {
@@ -25,23 +25,20 @@ namespace Conflicts
     }
 
     /// <summary>
-    /// 
+    /// Event to be set upon completion when using ThreadPool
     /// </summary>
     private ManualResetEvent doneEvent;
 
-    private bool canceled = false;
-    private object retrieverLock = new object();
-
-    public void CancelTask()
+    /// <summary>
+    /// Construct the FilesRetriever.
+    /// </summary>
+    public FilesRetriever()
     {
-      lock (retrieverLock)
-      {
-        canceled = true;
-      }
+      this.doneEvent = null;
     }
 
     /// <summary>
-    /// 
+    /// Construct the FilesRetriever with the given ManualResetEvent.
     /// </summary>
     /// <param name="doneEvent"></param>
     public FilesRetriever(ManualResetEvent doneEvent)
@@ -50,68 +47,51 @@ namespace Conflicts
     }
 
     /// <summary>
-    /// 
+    /// Callback to be used for ThreadPool
     /// </summary>
-    /// <param name="data"></param>
+    /// <param name="data">The path to get files from</param>
     public void ThreadPoolCallback(object data) 
     {
       string path = (string)data;
       getAllFiles(path);
-      doneEvent.Set();
+
+      if (doneEvent != null)
+        doneEvent.Set();
     }
 
     /// <summary>
-    /// 
+    /// Recursively retrieve files from the path as well as from all 
+    /// subirectories within the path.
     /// </summary>
-    /// <param name="files"></param>
-    /// <param name="path"></param>
+    /// <param name="path">The path to search</param>
     private void getAllFiles(string path)
     {
-      lock (retrieverLock)
-      { 
-        if (canceled) 
-          return;
-      }
-
       try
-      {
+      { // Get files
         files.AddRange(Directory.EnumerateFiles(path));
-        //Debug.WriteLine("Count: " + files.Count);
       }
 
-      catch (UnauthorizedAccessException ex)
-      {
-        //MessageBox.Show(ex.Message);
+      catch (Exception ex) // UnauthorizedAccessException
+      {                    // DirectoryNotFoundException
         return;
       }
 
-      catch (DirectoryNotFoundException ex)
-      {
-        return;
-      }
-
+      // Get directories
       List<string> dirs = new List<string>(Directory.EnumerateDirectories(path));
       foreach (string dir in dirs)
       {
-        lock (retrieverLock)
-        {
-          if (canceled)
-            return;
-        }
-
         getAllFiles(dir);
       }
     }
 
     /// <summary>
-    /// 
+    /// Get files from the path and ignore any directories
     /// </summary>
-    /// <param name="files"></param>
-    /// <param name="path"></param>
+    /// <param name="path">The path to search</param>
     public void getFiles(string path)
     {
       try
-      {
+      { // Get files
         files.AddRange(Directory.EnumerateFiles(path));
       }
 

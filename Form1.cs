@@ -19,7 +19,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Conflicts
+namespace DirConflict
 {
   /// <summary>
   /// Logic for the main form
@@ -126,6 +126,7 @@ namespace Conflicts
     /// <param name="e">The event arguments</param>
     private void runButton_Click(object sender, EventArgs e)
     {
+      // Keep track of how long it takes from start to display results
       Stopwatch stopwatch = new Stopwatch();
       stopwatch.Start();
 
@@ -222,6 +223,7 @@ namespace Conflicts
         stopwatch.Stop();
         long time = stopwatch.ElapsedMilliseconds;
         double dTime = (double)time / 1000;
+
         label3.BeginInvoke(new controlTextSetter(setControlText), 
           new object[]{ label3, dTime.ToString() + " seconds" });
 

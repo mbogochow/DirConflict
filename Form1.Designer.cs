@@ -1,4 +1,4 @@
-﻿namespace Conflicts
+﻿namespace DirConflict
 {
     partial class MainForm
     {
